@@ -15,16 +15,17 @@ class TestController {
     def welcome() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
         def result = [
-                environment: [
-                        frameWork : "Spring Boot 2.2.0",
-                        language  : "Java 1.8.0_181",
-                        dataSource: "Mysql 5.7",
-                        cache     : "Redis 5.0",
+                Environment: [
+                        Engine       : "Spring Boot 2.2.0",
+                        Language     : "Java 1.8.0_181",
+                        DataSource   : "Mysql 5.7",
+                        Cache        : "Redis 5.0",
+                        SystemVersion: "CentOS Linux release 7.7.1908 (Core)"
                 ],
-                server     : [
-                        name     : "law-voice",
-                        startTime: sdf.format(SysConstant.startTime),
-                        stat     : "running",
+                Server     : [
+                        Name     : "law-voice",
+                        StartTime: sdf.format(SysConstant.startTime),
+                        Status   : "running",
                 ]
         ]
         return WebResult.generateTrueWebResult(result, "LAW VOICE SERVER IS RUNNING!")
