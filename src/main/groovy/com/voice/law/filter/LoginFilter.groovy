@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject
 import com.voice.law.service.SecurityService
 import com.voice.law.util.WebResult
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
 import javax.servlet.Filter
@@ -27,6 +28,9 @@ class LoginFilter implements Filter {
 
     @Autowired
     SecurityService securityService
+    @Value("server.servlet.context-path")
+    String contentPath
+
 
     @Override
     void init(FilterConfig filterConfig) throws ServletException {
@@ -37,14 +41,33 @@ class LoginFilter implements Filter {
     void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         HttpServletRequest request = (HttpServletRequest) servletRequest
         HttpServletResponse response = (HttpServletResponse) servletResponse
-        boolean login = securityService.checkLogin(request, response)
-        if (login) {
-            filterChain.doFilter(request, response)
-        } else {
-            response.setCharacterEncoding("UTF-8");
-            response.setContentType("text/json;charset=utf-8");
-            response.getWriter().write(JSONObject.toJSONString(new WebResult(403, "用户未登录！", [:])))
+
+        String uri = request.getRequestURI() // /law-voice/*
+        def unFilterPath = [
+                "/rest/sysUser/login",
+                "/rest/sysUser/register",
+        ]
+
+        boolean check = true
+        unFilterPath.each {
+            if (uri.contains(it)) {
+                check = false
+            }
         }
+
+        if (check) {
+            boolean login = securityService.checkLogin(request, response)
+            if (login) {
+                filterChain.doFilter(request, response)
+            } else {
+                response.setCharacterEncoding("UTF-8")
+                response.setContentType("text/json;charset=utf-8")
+                response.getWriter().write(JSONObject.toJSONString(new WebResult(403, "用户未登录！", [:])))
+            }
+        } else {
+            filterChain.doFilter(request, response)
+        }
+
     }
 
     @Override

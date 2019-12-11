@@ -1,7 +1,6 @@
 server:
   servlet:
     context-path: /law-voice
-
   port: 8080
 
 spring:

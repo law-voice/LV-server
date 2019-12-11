@@ -1,5 +1,6 @@
 package com.voice.law.service
 
+import com.voice.law.util.CookieUtil
 import com.voice.law.util.SysConstant
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.redis.core.RedisTemplate
@@ -28,22 +29,19 @@ class SecurityService {
      */
     boolean checkLogin(HttpServletRequest request, HttpServletResponse response) {
         Cookie[] cookies = request.getCookies()
-        for(Cookie cookie : cookies){
-            if(cookie.getName() == SysConstant.LOGIN_COOKIE_NAME){
-                String cookieVal = cookie.getValue()
-                Object userCookie = redisTemplate.opsForValue().get(SysConstant.REDIS_CONSTANT + SysConstant.USER_COOKIE + cookie)
-                if (!userCookie) {
-                    return false
-                }
-                String userId = "1"
-                Cookie cookie2 = new Cookie(cookieVal, userId)
-                System.out.println(cookie2)
-                cookie2.setMaxAge(30 * 60)
-                response.addCookie(cookie2)
-                return true
-            } else {
+        Cookie cookie = CookieUtil.getCookieByName(cookies, SysConstant.LOGIN_COOKIE_NAME)
+        if (cookie) {
+            String cookieVal = cookie.getValue()
+            Object sysUserId = redisTemplate.opsForValue().get(SysConstant.REDIS_CONSTANT + SysConstant.USER_COOKIE + cookieVal)
+            if (!sysUserId) {
                 return false
             }
+            Cookie cookie2 = new Cookie(SysConstant.LOGIN_COOKIE_NAME, cookieVal)
+            System.out.println(cookie2)
+            cookie2.setMaxAge(SysConstant.REDIS_LOGIN_COOKIE_TIME_OUT)
+            response.addCookie(cookie2)
+            return true
         }
+        return false
     }
 }
