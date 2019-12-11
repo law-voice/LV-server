@@ -1,3 +1,32 @@
 server:
   servlet:
     context-path: /law-voice
+
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:mysql://122.152.200.208:3306/law_voice?autoReconnect=true&useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=CONVERT_TO_NULL&useSSL=false&serverTimezone=CTT
+    username: root
+    password: 123456
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    password:
+    #    host: 122.152.200.208
+    #    port: 6379
+    #    password:
+    database: 3
+    pool:
+      max-active: 10
+      max-wait: 100
+      max-idle: 10
+      min-idle: 0
+    timeout: 2000
+  application:
+    admin:
+      enabled:
