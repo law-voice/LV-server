@@ -23,11 +23,11 @@ class SecurityService {
     RedisTemplate redisTemplate
 
     /**
-     * 校验登录
+     * 校验系统用户登录
      * @param servletRequest
      * @return
      */
-    boolean checkLogin(HttpServletRequest request, HttpServletResponse response) {
+    boolean checkSysUserLogin(HttpServletRequest request, HttpServletResponse response) {
         Cookie[] cookies = request.getCookies()
         Cookie cookie = CookieUtil.getCookieByName(cookies, SysConstant.LOGIN_COOKIE_NAME)
         if (cookie) {

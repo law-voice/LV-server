@@ -14,7 +14,7 @@ import javax.persistence.Table
  */
 @Entity
 @Table(name = "sys_user")
-class SysUser {
+class SysUser extends BaseDomain{
     @Id  //表明主键
     @GeneratedValue(strategy = GenerationType.IDENTITY)  //表示自增长方式
     @Column(name = "id")  //表示对应的表product_的字段名
@@ -28,11 +28,4 @@ class SysUser {
     String avatar //头像
     String phone //手机号
     String email //邮箱
-    Integer creatorId //创建者id
-    Date createTime //创建时间
-    Integer updaterId //修改者id
-    Date updateTime //修改时间
-    Integer deleterId //删除者id
-    Date deleteTime //删除时间
-    Integer deleted //是否删除 0：未删除 1：已删除
 }

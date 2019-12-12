@@ -6,6 +6,9 @@ import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.data.redis.serializer.RedisSerializer
 import org.springframework.data.redis.serializer.StringRedisSerializer
 
+/**
+ * redis配置 防止乱码
+ */
 @Configuration
  class RedisConfig {
     @Autowired
