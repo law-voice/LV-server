@@ -1,6 +1,6 @@
 package com.voice.law.jpa
 
-import com.voice.law.domain.SysUser
+import com.voice.law.domain.User
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
@@ -10,7 +10,9 @@ import org.springframework.stereotype.Repository
  * @author zsd* @date 2019/12/11 7:33 下午
  */
 @Repository
-interface SysUserRepository extends JpaRepository<SysUser, Integer>{
+interface SysUserRepository extends JpaRepository<User, Integer>{
 
-    SysUser findByUsernameAndPassword(String username, String password)
+    User findByUsernameAndPassword(String username, String password)
+
+    User findByUsername(String username)
 }
