@@ -20,20 +20,20 @@ class AjaxCorsFilter extends CorsFilter {
     }
 
     private static UrlBasedCorsConfigurationSource configurationSource() {
-        CorsConfiguration corsConfig = new CorsConfiguration();
-        List<String> allowedHeaders = Arrays.asList("x-auth-token", "content-type", "X-Requested-With", "XMLHttpRequest");
-        List<String> exposedHeaders = Arrays.asList("x-auth-token", "content-type", "X-Requested-With", "XMLHttpRequest");
-        List<String> allowedMethods = Arrays.asList("POST", "GET", "DELETE", "PUT", "OPTIONS");
-        List<String> allowedOrigins = Arrays.asList("*");
-        corsConfig.setAllowedHeaders(allowedHeaders);
-        corsConfig.setAllowedMethods(allowedMethods);
-        corsConfig.setAllowedOrigins(allowedOrigins);
-        corsConfig.setExposedHeaders(exposedHeaders);
-        corsConfig.setMaxAge(36000L);
-        corsConfig.setAllowCredentials(true);
+        CorsConfiguration corsConfig = new CorsConfiguration()
+        List<String> allowedHeaders = Arrays.asList("x-auth-token", "content-type", "X-Requested-With", "XMLHttpRequest")
+        List<String> exposedHeaders = Arrays.asList("x-auth-token", "content-type", "X-Requested-With", "XMLHttpRequest")
+        List<String> allowedMethods = Arrays.asList("POST", "GET", "DELETE", "PUT", "OPTIONS")
+        List<String> allowedOrigins = Arrays.asList("*")
+        corsConfig.setAllowedHeaders(allowedHeaders)
+        corsConfig.setAllowedMethods(allowedMethods)
+        corsConfig.setAllowedOrigins(allowedOrigins)
+        corsConfig.setExposedHeaders(exposedHeaders)
+        corsConfig.setMaxAge(36000L)
+        corsConfig.setAllowCredentials(true)
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", corsConfig);
-        return source;
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource()
+        source.registerCorsConfiguration("/**", corsConfig)
+        return source
     }
 }

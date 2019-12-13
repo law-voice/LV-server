@@ -1,6 +1,7 @@
 package com.voice.law.controller.rest
 
-import com.voice.law.domain.SysUser
+
+import com.voice.law.domain.User
 import com.voice.law.jpa.SysUserRepository
 import com.voice.law.util.CookieUtil
 import com.voice.law.util.SysConstant
@@ -30,7 +31,7 @@ class SysUserController {
 
     @RequestMapping("/login")
     def login(String username, String password, HttpServletRequest request, HttpServletResponse response) {
-        SysUser sysUser = sysUserRepository.findByUsernameAndPassword(username, password)
+        User sysUser = sysUserRepository.findByUsernameAndPassword(username, password)
         if (sysUser) {
             Cookie oldCookie = CookieUtil.getCookieByName(request.getCookies(), SysConstant.LOGIN_COOKIE_NAME)
             if (oldCookie) {
@@ -73,7 +74,7 @@ class SysUserController {
     }
 
     @RequestMapping("/register")
-    def register(SysUser sysUser, String code) {
+    def register(User sysUser, String code) {
 
 
         print(sysUser.username + "=========")
