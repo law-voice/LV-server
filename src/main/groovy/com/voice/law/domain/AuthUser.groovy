@@ -13,11 +13,13 @@ import org.springframework.security.core.userdetails.UserDetails
 class AuthUser implements UserDetails {
     private String username
     private String password
+    private String option
     private List<Role> roles
 
-    AuthUser(String username, String password, List<Role> roles) {
+    AuthUser(String username, String password, String option, List<Role> roles) {
         this.username = username
         this.password = password
+        this.option = option
         this.roles = roles
     }
 
@@ -37,6 +39,10 @@ class AuthUser implements UserDetails {
     @Override
     String getUsername() {
         return username
+    }
+
+    String getOption() {
+        return option
     }
 
     @Override

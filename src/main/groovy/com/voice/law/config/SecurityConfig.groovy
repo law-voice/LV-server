@@ -1,8 +1,8 @@
 package com.voice.law.config
 
-import com.voice.law.filter.AccessDeniedHandler
+import com.voice.law.handler.AccessDeniedHandler
 import com.voice.law.filter.JwtTokenFilter
-import com.voice.law.filter.TokenExceptionHandler
+import com.voice.law.handler.TokenExceptionHandler
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity
@@ -53,5 +53,6 @@ class SecurityConfig extends WebSecurityConfigurerAdapter {
         web.ignoring()
         // 让我们获取 token的api不走spring security的过滤器，大道开放
                 .antMatchers(HttpMethod.POST, "/rest/user/login")
+                .antMatchers(HttpMethod.GET, "/rest/user/generateToken")
     }
 }

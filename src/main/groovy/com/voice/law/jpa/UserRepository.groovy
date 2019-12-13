@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository
  * @author zsd* @date 2019/12/11 7:33 下午
  */
 @Repository
-interface SysUserRepository extends JpaRepository<User, Integer>{
+interface UserRepository extends JpaRepository<User, Integer>{
 
     User findByUsernameAndPassword(String username, String password)
 

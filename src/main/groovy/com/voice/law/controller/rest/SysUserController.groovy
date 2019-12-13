@@ -2,7 +2,7 @@ package com.voice.law.controller.rest
 
 
 import com.voice.law.domain.User
-import com.voice.law.jpa.SysUserRepository
+import com.voice.law.jpa.UserRepository
 import com.voice.law.util.CookieUtil
 import com.voice.law.util.SysConstant
 import com.voice.law.util.WebResult
@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit
 class SysUserController {
 
     @Autowired
-    SysUserRepository sysUserRepository
+    UserRepository sysUserRepository
     @Autowired
     RedisTemplate redisTemplate
 

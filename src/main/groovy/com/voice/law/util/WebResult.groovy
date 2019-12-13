@@ -30,4 +30,12 @@ class WebResult {
     static generateFalseWebResult(String msg) {
         return new WebResult(500, msg, null)
     }
+
+    static generateUnTokenWebResult() {
+        return new WebResult(401, "请求无效，没有有效token！", null)
+    }
+
+    static generateUnRoleWebResult() {
+        return new WebResult(403, "权限不足！", null)
+    }
 }
