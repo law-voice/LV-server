@@ -73,13 +73,6 @@
             <version>1.2.46</version>
         </dependency>
 
-        <!--druid-->
-        <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>druid</artifactId>
-            <version>1.0.9</version>
-        </dependency>
-
         <!--spring data jpa-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
