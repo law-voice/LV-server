@@ -1,6 +1,7 @@
 package com.voice.law.controller.rest
 
 import com.voice.law.domain.AuthUser
+import com.voice.law.domain.Role
 import com.voice.law.domain.User
 import com.voice.law.jpa.RoleRepository
 import com.voice.law.jpa.UserRepository
@@ -11,6 +12,7 @@ import com.voice.law.util.SysConstant
 import com.voice.law.util.WebResult
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.redis.core.StringRedisTemplate
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -75,6 +77,17 @@ class UserController {
             return WebResult.generateUnTokenWebResult()
         }
     }
+
+    /**
+     * 添加用户（后台）
+     * @return
+     */
+    @PostMapping("/addUser")
+    @PreAuthorize("hasRole('admin')")
+    WebResult addUser() {
+
+    }
+
 
     @RequestMapping("/current")
     WebResult getCurrentUser() {
