@@ -10,6 +10,9 @@ import com.voice.law.service.SecurityService
 import com.voice.law.util.JwtUtil
 import com.voice.law.util.SysConstant
 import com.voice.law.util.WebResult
+import groovy.time.TimeCategory
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.security.access.prepost.PreAuthorize
@@ -20,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController
 
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
+import java.text.SimpleDateFormat
 
 @RestController
 @RequestMapping("/rest/user")
@@ -34,6 +38,8 @@ class UserController {
     SecurityService securityService
     @Autowired
     StringRedisTemplate redisTemplate
+
+    Logger logger = LoggerFactory.getLogger(this.class)
 
     /**
      * 用户登录
@@ -73,7 +79,7 @@ class UserController {
             }
             return WebResult.generateTrueWebResult(securityService.generateAuthTokenInfo(user), "生成token成功！")
         } catch (Exception e) {
-            e.printStackTrace()
+            logger.error("refresh_token解析失败！")
             return WebResult.generateUnTokenWebResult()
         }
     }
@@ -95,4 +101,5 @@ class UserController {
                 username: securityService.getCurrentUser().username
         ])
     }
+
 }

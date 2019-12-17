@@ -4,9 +4,12 @@ import com.alibaba.fastjson.JSONObject
 import com.alibaba.fastjson.serializer.SerializerFeature
 import com.voice.law.domain.AuthUser
 import com.voice.law.util.JwtUtil
+import com.voice.law.util.SpringUtil
 import com.voice.law.util.SysConstant
 import com.voice.law.util.WebResult
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.ApplicationContext
+import org.springframework.context.ApplicationContextAware
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
@@ -22,11 +25,9 @@ import javax.servlet.http.HttpServletResponse
  * token校验过滤器
  * create by zsd
  */
-@Component
 class JwtTokenFilter extends OncePerRequestFilter {
 
-    @Autowired
-    StringRedisTemplate redisTemplate
+    StringRedisTemplate redisTemplate = (StringRedisTemplate) SpringUtil.getBean(StringRedisTemplate.class)
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -60,8 +61,14 @@ class JwtTokenFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken)
                 }
             } catch (Exception e) {
-                logger.info("解析失败，可能是伪造的或者该token已经失效了。")
+                logger.info("access_token解析失败，可能是伪造的或者该token已经失效了。")
+                e.printStackTrace()
+                response.getWriter().write(JSONObject.toJSONString(WebResult.generateUnTokenWebResult(), SerializerFeature.WriteMapNullValue))
+                return
             }
+        } else {
+            response.getWriter().write(JSONObject.toJSONString(WebResult.generateUnTokenWebResult(), SerializerFeature.WriteMapNullValue))
+            return
         }
 
         filterChain.doFilter(request, response)

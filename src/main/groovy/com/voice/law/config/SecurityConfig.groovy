@@ -1,8 +1,10 @@
 package com.voice.law.config
 
-import com.voice.law.handler.AccessDeniedHandler
+//import com.voice.law.handler.AccessDeniedHandler
 import com.voice.law.filter.JwtTokenFilter
-import com.voice.law.handler.TokenExceptionHandler
+import com.voice.law.handler.AccessDeniedHandler
+
+//import com.voice.law.handler.TokenExceptionHandler
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity
@@ -19,12 +21,10 @@ import javax.annotation.Resource
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
 class SecurityConfig extends WebSecurityConfigurerAdapter {
-    @Resource
-    private TokenExceptionHandler tokenExceptionHandler
+//    @Resource
+//    private TokenExceptionHandler tokenExceptionHandler
     @Resource
     private AccessDeniedHandler accessDeniedHandler
-    @Resource
-    private JwtTokenFilter jwtTokenFilter
 
     @Override
     protected void configure(HttpSecurity httpSecurity) throws Exception {
@@ -32,7 +32,9 @@ class SecurityConfig extends WebSecurityConfigurerAdapter {
         // 因为我们的token是无状态的，不需要跨站保护
                 .csrf().disable()
         // 添加异常处理，以及访问禁止（无权限）处理
-                .exceptionHandling().authenticationEntryPoint(tokenExceptionHandler).accessDeniedHandler(accessDeniedHandler).and()
+                .exceptionHandling()
+//                .authenticationEntryPoint(tokenExceptionHandler)
+                .accessDeniedHandler(accessDeniedHandler).and()
 
         // 我们不再需要session了
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
@@ -45,14 +47,15 @@ class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .anyRequest().authenticated()
 
         //最后，我们定义 filter，用来替换原来的UsernamePasswordAuthenticationFilter
-        httpSecurity.addFilterAt(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class)
+        httpSecurity.addFilterAt(new JwtTokenFilter(), UsernamePasswordAuthenticationFilter.class)
     }
 
     @Override
     void configure(WebSecurity web) throws Exception {
         web.ignoring()
         // 让我们获取 token的api不走spring security的过滤器，大道开放
-                .antMatchers(HttpMethod.POST, "/rest/user/login")
                 .antMatchers(HttpMethod.GET, "/rest/user/generateToken")
+                .antMatchers(HttpMethod.POST, "/rest/user/login")
+
     }
 }

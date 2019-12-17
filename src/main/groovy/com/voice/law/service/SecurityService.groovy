@@ -37,8 +37,6 @@ class SecurityService {
     UserRoleRepository userRoleRepository
     @Autowired
     RoleRepository roleRepository
-    @Autowired
-    UserTokenRepository userTokenRepository
 
     /**
      * 校验系统用户登录
