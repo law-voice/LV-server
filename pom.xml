@@ -52,12 +52,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
@@ -138,12 +132,12 @@
                         <goals>
                             <goal>addSources</goal>
                             <goal>addTestSources</goal>
-                            <goal>generateStubs</goal>
+<!--                            <goal>generateStubs</goal>-->
                             <goal>compile</goal>
-                            <goal>generateTestStubs</goal>
+<!--                            <goal>generateTestStubs</goal>-->
                             <goal>compileTests</goal>
-                            <goal>removeStubs</goal>
-                            <goal>removeTestStubs</goal>
+<!--                            <goal>removeStubs</goal>-->
+<!--                            <goal>removeTestStubs</goal>-->
                         </goals>
                     </execution>
                 </executions>
