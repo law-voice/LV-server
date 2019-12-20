@@ -1,0 +1,11 @@
+由于完全前后端分离，所以不能使用传统意义上的Cookie机制，需要用到无状态token验证：
+
+token验证：
+	用户首次登陆，服务端发放access_token和refresh_token，需客户端缓存，access_token用户访问数据接口，refresh_token用于刷新失效的access_token。
+		逻辑如下：
+			例：access_token超时时间为15分钟，refresh_token超时时间为30分钟，当access_token超时失效时，客户端应带refresh_token调用服务端的access_token生成接口，服务端会判断当前refresh_token是否失效，若没失效则生成新的access_token与refresh_token，此时认为此用户为活跃用户，若失效则认为用户长时间未操作，跳转到登录页。
+只有一个access_token下的弊端：
+	若只有一个access_token而没有refresh_token的话，则会出现活跃用户在操作的时候遇到access_token超时过期失效，重定向到登录页，用户体验很不好。
+refresh_token作用：
+	refresh_token作用就是用活跃户无感刷新access_token，当refresh_token也失效了，那就说明用户很长时间不操作了。
+
