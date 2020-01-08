@@ -1,16 +1,16 @@
 package com.voice.law.controller.rest
 
-import com.voice.law.domain.AuthUser
-import com.voice.law.domain.Role
-import com.voice.law.domain.User
+import cn.hutool.core.bean.BeanUtil
+import cn.hutool.core.bean.copier.CopyOptions
+import com.voice.law.domain.*
 import com.voice.law.jpa.RoleRepository
 import com.voice.law.jpa.UserRepository
 import com.voice.law.jpa.UserRoleRepository
 import com.voice.law.service.SecurityService
+import com.voice.law.service.UserService
 import com.voice.law.util.JwtUtil
 import com.voice.law.util.SysConstant
 import com.voice.law.util.WebResult
-import groovy.time.TimeCategory
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -38,6 +38,8 @@ class UserController {
     SecurityService securityService
     @Autowired
     StringRedisTemplate redisTemplate
+    @Autowired
+    UserService userService
 
     Logger logger = LoggerFactory.getLogger(this.class)
 
@@ -49,10 +51,12 @@ class UserController {
      */
     @PostMapping("/login")
     WebResult login(String username, String password) {
-        User user = userRepository.findByUsername(username)
+        User user = userRepository.findByUsernameAndDeleted(username, 0)
         if (user == null || !(user.password == password)) {
             return WebResult.generateFalseWebResult("用户名密码错误！")
         }
+        user.lastLoginTime = new Date()
+        userRepository.saveAndFlush(user)
         return WebResult.generateTrueWebResult(securityService.generateAuthTokenInfo(user), "登陆成功！")
     }
 
@@ -65,7 +69,7 @@ class UserController {
     @GetMapping("/generateToken")
     WebResult generateToken(HttpServletRequest request, HttpServletResponse response) {
         String refreshToken = request.getHeader(SysConstant.REFRESH_TOKEN)
-        try{
+        try {
             AuthUser authUser = JwtUtil.parseToken(refreshToken)
             if (authUser.option != SysConstant.REFRESH_TOKEN) {
                 return WebResult.generateUnTokenWebResult()
@@ -88,18 +92,96 @@ class UserController {
      * 添加用户（后台）
      * @return
      */
-    @PostMapping("/addUser")
-    @PreAuthorize("hasRole('admin')")
-    WebResult addUser() {
+    @PostMapping("/addOrUpdateUser")
+    @PreAuthorize("hasRole('ADMIN')")
+    WebResult addUser(User paramUser, HttpServletRequest request) {
+        String sexEnumStr = request.getParameter("sexEnumStr")
+        String educationEnumStr = request.getParameter("educationEnumStr")
+        String birthdayStr = request.getParameter("birthdayStr")
+        String occupationDateStr = request.getParameter("occupationDateStr")
+        String occupationEndDateStr = request.getParameter("occupationEndDateStr")
 
+        User user
+        if (paramUser.id) {
+            //更新
+            user = userRepository.findById(paramUser.id).orElse(null)
+            if (!user) {
+                return WebResult.generateFalseWebResult("用户不存在！")
+            }
+            if (user.userTypeEnum != UserTypeEnum.WEB) {
+                return WebResult.generateFalseWebResult("仅支持修改web用户信息，该用户为非web用户！")
+            }
+            if (paramUser.username != null || paramUser.password != null) {
+                return WebResult.generateFalseWebResult("禁止修改用户名或密码！")
+            }
+            user.updaterId = securityService.getCurrentUser().id
+        } else {
+            //新增
+            if (!(paramUser.username && paramUser.password)) {
+                return WebResult.generateFalseWebResult("缺少必填项！")
+            }
+            User existUser = userRepository.findByUsernameAndDeleted(paramUser.username, 0)
+            if (existUser) {
+                return WebResult.generateFalseWebResult("用户名重复！")
+            }
+            user = new User()
+            user.userTypeEnum = UserTypeEnum.WEB
+            user.creatorId = securityService.getCurrentUser().id
+        }
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd")
+
+        if (sexEnumStr)
+            user.sexEnum = SexEnum.valueOf(sexEnumStr)
+        if (educationEnumStr)
+            user.educationEnum = EducationEnum.valueOf(educationEnumStr)
+        if (birthdayStr)
+            user.birthday = sdf.parse(birthdayStr)
+        if (occupationDateStr)
+            user.occupationDate = sdf.parse(occupationDateStr)
+        if (occupationEndDateStr)
+            user.occupationEndDate = sdf.parse(occupationEndDateStr)
+
+        BeanUtil.copyProperties(paramUser, user, CopyOptions.create().setIgnoreNullValue(true).setIgnoreError(true))
+        try {
+            userRepository.saveAndFlush(user)
+        } catch(Exception e) {
+            e.printStackTrace()
+            return WebResult.generateTrueWebResult("系统错误！")
+        }
+        return WebResult.generateTrueWebResult("保存成功！")
     }
 
 
-    @RequestMapping("/current")
+    /**
+     * 获取当前用户
+     * @return
+     */
+    @RequestMapping("/currentUser")
     WebResult getCurrentUser() {
+        User user = securityService.getCurrentUser()
         WebResult.generateTrueWebResult([
-                username: securityService.getCurrentUser().username
+                username: user.username,
+                avatar  : user.avatar,
+                nickName: user.nickName,
+                email   : user.email,
+                sexEnum : user.sexEnum?.getDesc(),
         ])
     }
 
+    /**
+     * 通过id获取用户详情
+     * @return
+     */
+    @GetMapping("/getUserDetailsById")
+    WebResult getUserDetailsById(Integer userId) {
+        if (!userId) {
+            return WebResult.generateFalseWebResult("param userId not found!")
+        }
+        User user = userRepository.findByIdAndDeleted(userId, 0)
+        if (!user) {
+            return WebResult.generateFalseWebResult("用户不存在！")
+        }
+        def result = userService.formatPropertyToMap(user)
+        return WebResult.generateTrueWebResult(result)
+    }
 }

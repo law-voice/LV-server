@@ -18,8 +18,8 @@ class PermissionController {
     }
 
     @GetMapping("/role")
-    @PreAuthorize("hasRole('user')")
+    @PreAuthorize("hasRole('ADMIN')")
     WebResult loginTest() {
-        return WebResult.generateTrueWebResult("你成功访问了需要有 user 角色的api。")
+        return WebResult.generateTrueWebResult("你成功访问了需要有 ADMIN 角色的api。")
     }
 }

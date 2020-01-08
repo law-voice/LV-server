@@ -14,5 +14,6 @@ class LawVoiceApplication {
     static void main(String[] args) {
         SysConstant.startTime = new Date()
         SpringApplication.run(LawVoiceApplication, args)
+        println "-" * 48 + " LAW VOICE SERVER IS RUNNING! " + "-" * 48
     }
 }

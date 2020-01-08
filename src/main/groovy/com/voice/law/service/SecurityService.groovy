@@ -39,29 +39,6 @@ class SecurityService {
     RoleRepository roleRepository
 
     /**
-     * 校验系统用户登录
-     * @param servletRequest
-     * @return
-     */
-    boolean checkSysUserLogin(HttpServletRequest request, HttpServletResponse response) {
-        Cookie[] cookies = request.getCookies()
-        Cookie cookie = CookieUtil.getCookieByName(cookies, SysConstant.LOGIN_COOKIE_NAME)
-        if (cookie) {
-            String cookieVal = cookie.getValue()
-            Object sysUserId = redisTemplate.opsForValue().get(SysConstant.REDIS_CONSTANT + SysConstant.USER_COOKIE + cookieVal)
-            if (!sysUserId) {
-                return false
-            }
-            Cookie cookie2 = new Cookie(SysConstant.LOGIN_COOKIE_NAME, cookieVal)
-            System.out.println(cookie2)
-            cookie2.setMaxAge(SysConstant.REDIS_LOGIN_COOKIE_TIME_OUT)
-            response.addCookie(cookie2)
-            return true
-        }
-        return false
-    }
-
-    /**
      * 获取当前用户
      * @return
      */
@@ -70,7 +47,7 @@ class SecurityService {
         def principal = authentication.principal
         User user = null
         if (principal) {
-            user = userRepository.findByUsername(principal.username)
+            user = userRepository.findByUsernameAndDeleted(principal.username, 0)
         }
         return user
     }
@@ -87,12 +64,12 @@ class SecurityService {
         }
         List<Role> roleList = roleRepository.findAllById(roleIdList)
 
-        Date accessTokenTimeout = new Date(System.currentTimeMillis() + 15 * 60 * 1000) //15 min
-        Date refreshTokenTimeout = new Date(System.currentTimeMillis() + 30 * 60 * 1000) //30 min
+        Date accessTokenTimeout = new Date(System.currentTimeMillis() + SysConstant.APP_ACCESS_TOKEN_TIMEOUT) //15 min
+        Date refreshTokenTimeout = new Date(System.currentTimeMillis() + SysConstant.APP_REFRESH_TOKEN_TIMEOUT) //30 min
 
         if (user.userTypeEnum == UserTypeEnum.APP) {
-            accessTokenTimeout = new Date(System.currentTimeMillis() + 15 * 24 * 60 * 60 * 1000) //15 days
-            refreshTokenTimeout = new Date(System.currentTimeMillis() + 30 * 24 * 60 * 60 * 1000) //30 days
+            accessTokenTimeout = new Date(System.currentTimeMillis() + SysConstant.REST_ACCESS_TOKEN_TIMEOUT) //15 days
+            refreshTokenTimeout = new Date(System.currentTimeMillis() + SysConstant.REST_REFRESH_TOKEN_TIMEOUT) //30 days
         }
 
         SimpleDateFormat sdf = new SimpleDateFormat(SysConstant.yyyyMMddHHmmss)

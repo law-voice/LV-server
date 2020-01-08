@@ -104,6 +104,13 @@
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
 
+        <!--bean utils-->
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-all</artifactId>
+            <version>4.1.14</version>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -135,7 +142,7 @@
 <!--                            <goal>generateStubs</goal>-->
                             <goal>compile</goal>
 <!--                            <goal>generateTestStubs</goal>-->
-                            <goal>compileTests</goal>
+<!--                            <goal>compileTests</goal>-->
 <!--                            <goal>removeStubs</goal>-->
 <!--                            <goal>removeTestStubs</goal>-->
                         </goals>
