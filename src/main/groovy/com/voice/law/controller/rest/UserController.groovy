@@ -74,7 +74,7 @@ class UserController {
             if (authUser.option != SysConstant.REFRESH_TOKEN) {
                 return WebResult.generateUnTokenWebResult()
             }
-            User user = userRepository.findByUsername(authUser.username)
+            User user = userRepository.findByUsernameAndDeleted(authUser.username, 0)
             String oldToken = redisTemplate.opsForValue().get(SysConstant.REDIS_KEY_USER_REFRESH_TOKEN + user.username)
             //只要到这，说明token解析成功，token存在
             //token 与 redis中存储的不一致 说明当前token已被更改，在其他设备重新登录了。
