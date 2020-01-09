@@ -9,6 +9,7 @@ import com.voice.law.jpa.UserRoleRepository
 import com.voice.law.service.SecurityService
 import com.voice.law.service.UserService
 import com.voice.law.util.JwtUtil
+import com.voice.law.util.MD5Util
 import com.voice.law.util.SysConstant
 import com.voice.law.util.WebResult
 import org.slf4j.Logger
@@ -52,7 +53,7 @@ class UserController {
     @PostMapping("/login")
     WebResult login(String username, String password) {
         User user = userRepository.findByUsernameAndDeleted(username, 0)
-        if (user == null || !(user.password == password)) {
+        if (user == null || !(MD5Util.compare(password, user.slat, user.password))) {
             return WebResult.generateFalseWebResult("用户名密码错误！")
         }
         user.lastLoginTime = new Date()
@@ -101,6 +102,16 @@ class UserController {
         String occupationDateStr = request.getParameter("occupationDateStr")
         String occupationEndDateStr = request.getParameter("occupationEndDateStr")
 
+        //加密密码
+        if (paramUser.password) {
+            if (paramUser.password.length() > 16) {
+                return WebResult.generateFalseWebResult("密码长度不能大于16位！")
+            }
+            String slat = UUID.randomUUID().toString()
+            paramUser.slat = slat
+            paramUser.password = MD5Util.getMD5(paramUser.password, slat)
+        }
+
         User user
         if (paramUser.id) {
             //更新
@@ -111,8 +122,8 @@ class UserController {
             if (user.userTypeEnum != UserTypeEnum.WEB) {
                 return WebResult.generateFalseWebResult("仅支持修改web用户信息，该用户为非web用户！")
             }
-            if (paramUser.username != null || paramUser.password != null) {
-                return WebResult.generateFalseWebResult("禁止修改用户名或密码！")
+            if (paramUser.username != null) {
+                return WebResult.generateFalseWebResult("禁止修改用户名！")
             }
             user.updaterId = securityService.getCurrentUser().id
         } else {
@@ -183,5 +194,32 @@ class UserController {
         }
         def result = userService.formatPropertyToMap(user)
         return WebResult.generateTrueWebResult(result)
+    }
+
+    /**
+     * 修改密码
+     */
+    @PostMapping("changePassword")
+    WebResult changePassword(String oldPassword, String newPassword) {
+        if (!(oldPassword && newPassword)) {
+            return WebResult.generateFalseWebResult("param not found!")
+        }
+        if (newPassword.length() > 16) {
+            return WebResult.generateFalseWebResult("密码长度不能大于16位！")
+        }
+        User user = securityService.getCurrentUser()
+        if (!(MD5Util.compare(oldPassword, user.slat, user.password))) {
+            return WebResult.generateFalseWebResult("原密码不正确！")
+        }
+        String slat = UUID.randomUUID().toString()
+        user.slat = slat
+        user.password = MD5Util.getMD5(newPassword, slat)
+        try {
+            userRepository.saveAndFlush(user)
+        } catch(Exception e) {
+            e.printStackTrace()
+            return WebResult.generateTrueWebResult("系统错误！")
+        }
+        return WebResult.generateTrueWebResult("SUCCESS", "密码修改成功！")
     }
 }

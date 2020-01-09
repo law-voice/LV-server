@@ -14,6 +14,7 @@ class News extends BaseDomain{
     @Column(name = "id")
     Integer id
 
-
+    @Column(columnDefinition="TEXT")
+    String constant //内容
 
 }

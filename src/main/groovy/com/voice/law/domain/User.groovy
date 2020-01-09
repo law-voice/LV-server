@@ -23,6 +23,7 @@ class User extends BaseDomain {
     String username //用户名
     @Column(nullable = false)
     String password //密码
+    String slat //用户密码MD5加密盐值
     String name //姓名
     String nickName //昵称
     String avatar //头像
