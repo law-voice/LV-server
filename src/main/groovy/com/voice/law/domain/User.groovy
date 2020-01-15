@@ -40,10 +40,12 @@ class User extends BaseDomain {
     String major //专业
     String industry //行业
     String occupation //职业
+    String industryCode //行业code
+    String occupationCode //职业code
     String idCardNo //身份证号
-    Integer provinceCode //省code
-    Integer cityCode //市code
-    Integer areaCode //区code
+    String provinceCode //省code
+    String cityCode //市code
+    String areaCode //区code
     String province //省
     String city //市
     String area //区

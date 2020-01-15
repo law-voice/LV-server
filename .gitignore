@@ -1,5 +1,8 @@
 HELP.md
 target/
+.gitignore
+.DS_Store
+logs/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**
 !**/src/test/**

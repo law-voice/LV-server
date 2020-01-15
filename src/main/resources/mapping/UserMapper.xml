@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.voice.law.mapper.UserMapper">
+
+    <!--用户权限列表-->
+    <select id="findRoleListByUserId" parameterType="Integer" resultType="map">
+    SELECT
+	    role.role_name,
+	    role.description
+    FROM
+	    user
+	INNER JOIN user_role ON user_role.user_id = user.id
+	INNER JOIN role ON role.id = user_role.role_id
+    WHERE
+	    user.id = #{userId}
+    </select>
+
+    <!--用户列表-->
+    <select id="userList" parameterType="map" resultType="map">
+		SELECT
+        <if test="option == 'list'">
+            id as userId,
+            username as username,
+            nick_name as nickName,
+            avatar as avatar,
+            sex_enum as sexEnum,
+            create_time as createTime,
+            last_login_time as lastLoginTime
+        </if>
+        <if test="option == 'count'">
+            count(id) as totalCount
+        </if>
+        FROM
+        user
+        WHERE 1 = 1
+        <if test="username != null and username != ''">
+            and username LIKE #{username}
+        </if>
+        <if test="nickName != null and nickName != ''">
+            AND nick_name LIKE #{nickName}
+        </if>
+        <if test="userTypeEnumStr != null and userTypeEnumStr != ''">
+            AND user_type_enum = #{userTypeEnumStr}
+        </if>
+		<if test="option == 'list'">
+		    order by create_time desc
+			LIMIT #{offset}, #{pageSize}
+		</if>
+    </select>
+</mapper>

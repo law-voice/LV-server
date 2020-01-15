@@ -5,8 +5,8 @@ server:
 
 spring:
   datasource:
-#    url: jdbc:mysql://122.152.200.208:10743/law_voice?autoReconnect=true&useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=CONVERT_TO_NULL&useSSL=false&serverTimezone=CTT
-    url: jdbc:mysql://127.0.0.1:10743/law_voice?autoReconnect=true&useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=CONVERT_TO_NULL&useSSL=false&serverTimezone=CTT
+    url: jdbc:mysql://122.152.200.208:10743/law_voice?autoReconnect=true&useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=CONVERT_TO_NULL&useSSL=false&serverTimezone=CTT
+#    url: jdbc:mysql://127.0.0.1:10743/law_voice?autoReconnect=true&useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=CONVERT_TO_NULL&useSSL=false&serverTimezone=CTT
     username: root
     password: lv2020
 
@@ -19,8 +19,8 @@ spring:
         format_sql: true
   redis:
     host: 127.0.0.1
-#    port: 6379
-    port: 9206
+    port: 6379
+#    port: 9206
     password:
     database: 3
     pool:
@@ -29,6 +29,12 @@ spring:
       max-idle: 10
       min-idle: 0
     timeout: 2000
+
+mybatis:
+  mapper-locations: classpath:mapping/*.xml
+  typeAliasesPackage: com.voice.law.mapper
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
 logging:
   level:

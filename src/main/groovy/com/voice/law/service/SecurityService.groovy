@@ -1,5 +1,6 @@
 package com.voice.law.service
 
+import com.voice.law.domain.AuthUser
 import com.voice.law.domain.Role
 import com.voice.law.domain.User
 import com.voice.law.domain.UserRole
@@ -44,7 +45,7 @@ class SecurityService {
      */
     User getCurrentUser() {
         def authentication = SecurityContextHolder.getContext().authentication
-        def principal = authentication.principal
+        def principal = authentication.principal as AuthUser
         User user = null
         if (principal) {
             user = userRepository.findByUsernameAndDeleted(principal.username, 0)
@@ -64,12 +65,17 @@ class SecurityService {
         }
         List<Role> roleList = roleRepository.findAllById(roleIdList)
 
-        Date accessTokenTimeout = new Date(System.currentTimeMillis() + SysConstant.APP_ACCESS_TOKEN_TIMEOUT) //15 min
-        Date refreshTokenTimeout = new Date(System.currentTimeMillis() + SysConstant.APP_REFRESH_TOKEN_TIMEOUT) //30 min
+        //15 min
+        Date accessTokenTimeout = new Date(System.currentTimeMillis() + SysConstant.APP_ACCESS_TOKEN_TIMEOUT)
+        //30 min
+        Date refreshTokenTimeout = new Date(System.currentTimeMillis() + SysConstant.APP_REFRESH_TOKEN_TIMEOUT)
 
         if (user.userTypeEnum == UserTypeEnum.APP) {
-            accessTokenTimeout = new Date(System.currentTimeMillis() + SysConstant.REST_ACCESS_TOKEN_TIMEOUT) //15 days
-            refreshTokenTimeout = new Date(System.currentTimeMillis() + SysConstant.REST_REFRESH_TOKEN_TIMEOUT) //30 days
+            //15 days
+            accessTokenTimeout = new Date(System.currentTimeMillis() + SysConstant.REST_ACCESS_TOKEN_TIMEOUT)
+            //30 days
+            refreshTokenTimeout = new Date(System.currentTimeMillis() + SysConstant.REST_REFRESH_TOKEN_TIMEOUT)
+
         }
 
         SimpleDateFormat sdf = new SimpleDateFormat(SysConstant.yyyyMMddHHmmss)
@@ -86,7 +92,7 @@ class SecurityService {
                         time_out                  : sdf.format(accessTokenTimeout),
                 ],
                 refresh: [
-                        (SysConstant.REFRESH_TOKEN):refreshToken,
+                        (SysConstant.REFRESH_TOKEN): refreshToken,
                         time_out                   : sdf.format(refreshTokenTimeout),
                 ]
         ]

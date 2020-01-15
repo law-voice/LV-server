@@ -7,13 +7,9 @@ import com.voice.law.util.JwtUtil
 import com.voice.law.util.SpringUtil
 import com.voice.law.util.SysConstant
 import com.voice.law.util.WebResult
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.ApplicationContext
-import org.springframework.context.ApplicationContextAware
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
 
 import javax.servlet.FilterChain

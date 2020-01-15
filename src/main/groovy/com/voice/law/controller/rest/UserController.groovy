@@ -6,6 +6,7 @@ import com.voice.law.domain.*
 import com.voice.law.jpa.RoleRepository
 import com.voice.law.jpa.UserRepository
 import com.voice.law.jpa.UserRoleRepository
+import com.voice.law.mapper.UserMapper
 import com.voice.law.service.SecurityService
 import com.voice.law.service.UserService
 import com.voice.law.util.JwtUtil
@@ -20,10 +21,10 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
 import java.text.SimpleDateFormat
 
 @RestController
@@ -41,6 +42,8 @@ class UserController {
     StringRedisTemplate redisTemplate
     @Autowired
     UserService userService
+    @Autowired
+    UserMapper userMapper
 
     Logger logger = LoggerFactory.getLogger(this.class)
 
@@ -53,7 +56,7 @@ class UserController {
     @PostMapping("/login")
     WebResult login(String username, String password) {
         User user = userRepository.findByUsernameAndDeleted(username, 0)
-        if (user == null || !(MD5Util.compare(password, user.slat, user.password))) {
+        if (user == null || !(MD5Util.compare(password, user.slat, user.password)) || user.userTypeEnum != UserTypeEnum.WEB) {
             return WebResult.generateFalseWebResult("用户名密码错误！")
         }
         user.lastLoginTime = new Date()
@@ -68,7 +71,7 @@ class UserController {
      * @return
      */
     @GetMapping("/generateToken")
-    WebResult generateToken(HttpServletRequest request, HttpServletResponse response) {
+    WebResult generateToken(HttpServletRequest request) {
         String refreshToken = request.getHeader(SysConstant.REFRESH_TOKEN)
         try {
             AuthUser authUser = JwtUtil.parseToken(refreshToken)
@@ -90,12 +93,12 @@ class UserController {
     }
 
     /**
-     * 添加用户（后台）
+     * 添加或者修改用户（后台）
      * @return
      */
     @PostMapping("/addOrUpdateUser")
     @PreAuthorize("hasRole('ADMIN')")
-    WebResult addUser(User paramUser, HttpServletRequest request) {
+    WebResult addOrUpdateUser(User paramUser, HttpServletRequest request) {
         String sexEnumStr = request.getParameter("sexEnumStr")
         String educationEnumStr = request.getParameter("educationEnumStr")
         String birthdayStr = request.getParameter("birthdayStr")
@@ -133,7 +136,7 @@ class UserController {
             }
             User existUser = userRepository.findByUsernameAndDeleted(paramUser.username, 0)
             if (existUser) {
-                return WebResult.generateFalseWebResult("用户名重复！")
+                return WebResult.generateFalseWebResult("该用户名已存在！")
             }
             user = new User()
             user.userTypeEnum = UserTypeEnum.WEB
@@ -155,8 +158,9 @@ class UserController {
         BeanUtil.copyProperties(paramUser, user, CopyOptions.create().setIgnoreNullValue(true).setIgnoreError(true))
         try {
             userRepository.saveAndFlush(user)
-        } catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace()
+            logger.error("修改用户信息保存错误。user id: " + user.id)
             return WebResult.generateTrueWebResult("系统错误！")
         }
         return WebResult.generateTrueWebResult("保存成功！")
@@ -168,15 +172,9 @@ class UserController {
      * @return
      */
     @RequestMapping("/currentUser")
-    WebResult getCurrentUser() {
+    WebResult getCurrentUser(String option) {
         User user = securityService.getCurrentUser()
-        WebResult.generateTrueWebResult([
-                username: user.username,
-                avatar  : user.avatar,
-                nickName: user.nickName,
-                email   : user.email,
-                sexEnum : user.sexEnum?.getDesc(),
-        ])
+        WebResult.generateTrueWebResult(userService.formatPropertyToMap(user, option == "detail"))
     }
 
     /**
@@ -192,14 +190,14 @@ class UserController {
         if (!user) {
             return WebResult.generateFalseWebResult("用户不存在！")
         }
-        def result = userService.formatPropertyToMap(user)
+        def result = userService.formatPropertyToMap(user, true)
         return WebResult.generateTrueWebResult(result)
     }
 
     /**
      * 修改密码
      */
-    @PostMapping("changePassword")
+    @PostMapping("/changePassword")
     WebResult changePassword(String oldPassword, String newPassword) {
         if (!(oldPassword && newPassword)) {
             return WebResult.generateFalseWebResult("param not found!")
@@ -216,10 +214,70 @@ class UserController {
         user.password = MD5Util.getMD5(newPassword, slat)
         try {
             userRepository.saveAndFlush(user)
-        } catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace()
+            logger.error("修改密码保存错误。user id: " + user.id)
             return WebResult.generateTrueWebResult("系统错误！")
         }
         return WebResult.generateTrueWebResult("SUCCESS", "密码修改成功！")
+    }
+
+    /**
+     * 用户列表
+     */
+    @GetMapping("/userList")
+    @PreAuthorize("hasRole('ADMIN')")
+    WebResult userList(
+            @RequestParam(name = "username", required = false) String username,
+            @RequestParam(name = "nickName", required = false) String nickName,
+            @RequestParam(name = "userTypeEnumStr", required = false) String userTypeEnumStr,
+            @RequestParam(name = "pageSize", required = false) Integer pageSize,
+            @RequestParam(name = "pageNumber", required = false) Integer pageNumber
+    ) {
+        pageNumber = pageNumber ? pageNumber : 1
+        pageSize = pageSize ? pageSize : 20
+
+        if (pageNumber < 1 || pageSize <= 0) {
+            return WebResult.generateFalseWebResult("参数非法！")
+        }
+
+        def queryParams = [
+                username       : username ? ("%" + username + "%") : null,
+                nickName       : nickName ? ("%" + nickName + "%") : null,
+                userTypeEnumStr: userTypeEnumStr ? userTypeEnumStr : null,
+                pageSize       : pageSize,
+                offset         : pageSize * (pageNumber - 1),
+                option         : "list",
+        ]
+
+        def queryResult = userMapper.userList(queryParams)
+        def countResult = userMapper.userList(queryParams << [option: "count"])
+
+        def result = [:]
+        if (queryResult) {
+            result.list = queryResult.collect { Map row ->
+                SexEnum sexEnum = row.sexEnum ? SexEnum.valueOf(row.sexEnum as String) : null
+                [
+                        userId       : row.userId,
+                        username     : row.username,
+                        nickName     : row.nickName,
+                        avatar       : row.avatar,
+                        sexEnum      : sexEnum ? [
+                                key : sexEnum.toString(),
+                                desc: sexEnum.getDesc()
+                        ] : null,
+                        createTime   : row.createTime ? SysConstant.yyyyMMddHHmmssSdf.format(row.createTime as Date) : null,
+                        lastLoginTime: row.lastLoginTime ? SysConstant.yyyyMMddHHmmssSdf.format(row.lastLoginTime as Date) : null
+                ]
+            }
+            result.pageSize = queryResult.size()
+            result.totalCount = countResult[0].totalCount
+        } else {
+            result.list = []
+            result.pageSize = 0
+            result.totalCount = 0
+        }
+
+        return WebResult.generateTrueWebResult(result)
     }
 }

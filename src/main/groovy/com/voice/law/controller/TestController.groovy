@@ -1,18 +1,27 @@
 package com.voice.law.controller
 
+
+import com.voice.law.jpa.AreaRepository
+import com.voice.law.jpa.CityRepository
+import com.voice.law.jpa.ProvinceRepository
 import com.voice.law.util.SysConstant
 import com.voice.law.util.WebResult
-import org.springframework.boot.SpringApplication
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
-import java.awt.Component
 import java.text.SimpleDateFormat
-import java.util.stream.Stream
 
 @RequestMapping("/index")
 @RestController
 class TestController {
+
+    @Autowired
+    ProvinceRepository provinceRepository
+    @Autowired
+    CityRepository cityRepository
+    @Autowired
+    AreaRepository areaRepository
 
     @RequestMapping("/welcome")
     def welcome() {
@@ -70,4 +79,46 @@ class TestController {
         ]
         return map
     }
+
+    /**
+     * 勿删 生成 省市区 数据
+     */
+//    @RequestMapping("/generateData")
+//    def generateData() {
+//        String jsonPath = "/Users/zsd/law-voice/province_city_area_min.json"
+//        BufferedReader bufferedReader = new BufferedReader(new FileReader(jsonPath))
+//        def map = JSONObject.parse(bufferedReader.readLine())
+//        map.each { def provinceMap ->
+//            Province province = new Province()
+//            province.code = provinceMap.key
+//            province.name = provinceMap.value.name
+//            println(province.code)
+//            println(province.name)
+//            provinceMap.value.child.each { def cityMap ->
+//                City city = new City()
+//                city.code = cityMap.key
+//                city.name = cityMap.value.name
+//                city.provinceCode = province.code
+//                println("===" + city.code)
+//                println("===" + city.name)
+//                println("===" + city.provinceCode)
+//                cityMap.value.child.each {
+//                    Area area = new Area()
+//                    area.code = it.key
+//                    area.name = it.value
+//                    area.cityCode = city.code
+//                    println("=== ===" + area.code)
+//                    println("=== ===" + area.name)
+//                    println("=== ===" + area.cityCode)
+//
+//                    areaRepository.saveAndFlush(area)
+//                }
+//
+//                cityRepository.saveAndFlush(city)
+//            }
+//
+//            provinceRepository.saveAndFlush(province)
+//        }
+//        println(map.size())
+//    }
 }
