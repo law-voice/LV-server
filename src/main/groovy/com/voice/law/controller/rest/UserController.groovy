@@ -3,6 +3,7 @@ package com.voice.law.controller.rest
 import cn.hutool.core.bean.BeanUtil
 import cn.hutool.core.bean.copier.CopyOptions
 import com.voice.law.domain.*
+import com.voice.law.jpa.LoginRecordRepository
 import com.voice.law.jpa.RoleRepository
 import com.voice.law.jpa.UserRepository
 import com.voice.law.jpa.UserRoleRepository
@@ -37,6 +38,8 @@ class UserController {
     @Autowired
     UserRoleRepository userRoleRepository
     @Autowired
+    LoginRecordRepository loginRecordRepository
+    @Autowired
     SecurityService securityService
     @Autowired
     StringRedisTemplate redisTemplate
@@ -61,6 +64,12 @@ class UserController {
         }
         user.lastLoginTime = new Date()
         userRepository.saveAndFlush(user)
+
+        LoginRecord loginRecord = new LoginRecord()
+        loginRecord.userId = user.id
+        loginRecord.loginTime = new Date()
+        loginRecordRepository.saveAndFlush(loginRecord)
+
         return WebResult.generateTrueWebResult(securityService.generateAuthTokenInfo(user), "登陆成功！")
     }
 
@@ -229,8 +238,11 @@ class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     WebResult userList(
             @RequestParam(name = "username", required = false) String username,
+            @RequestParam(name = "name", required = false) String name,
             @RequestParam(name = "nickName", required = false) String nickName,
             @RequestParam(name = "userTypeEnumStr", required = false) String userTypeEnumStr,
+            @RequestParam(name = "createTimeStartStr", required = false) String createTimeStartStr,
+            @RequestParam(name = "createTimeEndStr", required = false) String createTimeEndStr,
             @RequestParam(name = "pageSize", required = false) Integer pageSize,
             @RequestParam(name = "pageNumber", required = false) Integer pageNumber
     ) {
@@ -244,6 +256,7 @@ class UserController {
         def queryParams = [
                 username       : username ? ("%" + username + "%") : null,
                 nickName       : nickName ? ("%" + nickName + "%") : null,
+                name           : name ? ("%" + name + "%") : null,
                 userTypeEnumStr: userTypeEnumStr ? userTypeEnumStr : null,
                 pageSize       : pageSize,
                 offset         : pageSize * (pageNumber - 1),
