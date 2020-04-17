@@ -7,4 +7,5 @@ import org.springframework.stereotype.Repository
 @Repository
 interface ProvinceRepository extends JpaRepository<Province, Integer> {
 
+    List<Province> findAllByOrderByCode()
 }
