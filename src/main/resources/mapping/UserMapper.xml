@@ -19,31 +19,66 @@
     <select id="userList" parameterType="map" resultType="map">
 		SELECT
         <if test="option == 'list'">
-            id as userId,
-            username as username,
-            nick_name as nickName,
-            avatar as avatar,
-            sex_enum as sexEnum,
-            create_time as createTime,
-            last_login_time as lastLoginTime
+            u.id as userId,
+            u.username as username,
+            u.nick_name as nickName,
+            u.name as name,
+            u.id_card_no as idCardNo,
+            u.avatar as avatar,
+            u.sex_enum as sexEnum,
+            u.industry as industry,
+            u.occupation as occupation,
+            u.education_enum as educationEnum,
+            u.create_time as createTime,
+            u.last_login_time as lastLoginTime,
+            (select count(1) from login_record lr
+            where lr.user_id = u.id and lr.login_time &lt;= #{now} and lr.login_time &gt;= #{lastYear}
+            ) as countOnLineRangYear,
+            (select count(1) from login_record lr
+            where lr.user_id = u.id and lr.login_time &lt;= #{now} and lr.login_time &gt;= #{lastMonth}
+            ) as countOnLineRangMonth,
+            (select count(1) from login_record lr
+            where lr.user_id = u.id and lr.login_time &lt;= #{now} and lr.login_time &gt;= #{lastWeek}
+            ) as countOnLineRangWeek
         </if>
         <if test="option == 'count'">
             count(id) as totalCount
         </if>
         FROM
-        user
+        user u
         WHERE 1 = 1
         <if test="username != null and username != ''">
-            and username LIKE #{username}
+            and u.username LIKE #{username}
+        </if>
+        <if test="name != null and name != ''">
+            and u.name LIKE #{name}
         </if>
         <if test="nickName != null and nickName != ''">
-            AND nick_name LIKE #{nickName}
+            AND u.nick_name LIKE #{nickName}
+        </if>
+        <if test="idCardNo != null and idCardNo != ''">
+            AND u.id_card_no = #{idCardNo}
         </if>
         <if test="userTypeEnumStr != null and userTypeEnumStr != ''">
-            AND user_type_enum = #{userTypeEnumStr}
+            AND u.user_type_enum = #{userTypeEnumStr}
+        </if>
+        <if test="industryCode != null and industryCode != ''">
+            AND u.industry_code = #{industryCode}
+        </if>
+        <if test="occupationCode != null and occupationCode != ''">
+            AND u.occupation_code = #{occupationCode}
+        </if>
+        <if test="educationEnumStr != null and educationEnumStr != ''">
+            AND u.education_enum = #{educationEnumStr}
+        </if>
+        <if test="createTimeStartStr != null and createTimeStartStr != ''">
+            AND u.create_time &gt;= #{createTimeStartStr}
+        </if>
+        <if test="createTimeEndStr != null and createTimeEndStr != ''">
+            AND u.create_time &lt;= #{createTimeEndStr}
         </if>
 		<if test="option == 'list'">
-		    order by create_time desc
+		    order by u.create_time desc
 			LIMIT #{offset}, #{pageSize}
 		</if>
     </select>

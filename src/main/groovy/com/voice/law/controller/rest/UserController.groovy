@@ -3,13 +3,16 @@ package com.voice.law.controller.rest
 import cn.hutool.core.bean.BeanUtil
 import cn.hutool.core.bean.copier.CopyOptions
 import com.voice.law.domain.*
+import com.voice.law.jpa.IndustryRepository
 import com.voice.law.jpa.LoginRecordRepository
+import com.voice.law.jpa.OccupationRepository
 import com.voice.law.jpa.RoleRepository
 import com.voice.law.jpa.UserRepository
 import com.voice.law.jpa.UserRoleRepository
 import com.voice.law.mapper.UserMapper
 import com.voice.law.service.SecurityService
 import com.voice.law.service.UserService
+import com.voice.law.util.DateUtil
 import com.voice.law.util.JwtUtil
 import com.voice.law.util.MD5Util
 import com.voice.law.util.SysConstant
@@ -39,6 +42,10 @@ class UserController {
     UserRoleRepository userRoleRepository
     @Autowired
     LoginRecordRepository loginRecordRepository
+    @Autowired
+    OccupationRepository occupationRepository
+    @Autowired
+    IndustryRepository industryRepository
     @Autowired
     SecurityService securityService
     @Autowired
@@ -240,9 +247,13 @@ class UserController {
             @RequestParam(name = "username", required = false) String username,
             @RequestParam(name = "name", required = false) String name,
             @RequestParam(name = "nickName", required = false) String nickName,
+            @RequestParam(name = "idCardNo", required = false) String idCardNo,
             @RequestParam(name = "userTypeEnumStr", required = false) String userTypeEnumStr,
             @RequestParam(name = "createTimeStartStr", required = false) String createTimeStartStr,
             @RequestParam(name = "createTimeEndStr", required = false) String createTimeEndStr,
+            @RequestParam(name = "industryCode", required = false) String industryCode,
+            @RequestParam(name = "occupationCode", required = false) String occupationCode,
+            @RequestParam(name = "educationEnumStr", required = false) String educationEnumStr,
             @RequestParam(name = "pageSize", required = false) Integer pageSize,
             @RequestParam(name = "pageNumber", required = false) Integer pageNumber
     ) {
@@ -253,14 +264,30 @@ class UserController {
             return WebResult.generateFalseWebResult("参数非法！")
         }
 
+        Date now = new Date()
+        Date lastYear = DateUtil.getDateByAddOption(now, -1, 0, 0)
+        Date lastMonth = DateUtil.getDateByAddOption(now, 0, -1, 0)
+        Date lastWeek = DateUtil.getDateByAddOption(now, 0, 0, -7)
+
+
         def queryParams = [
-                username       : username ? ("%" + username + "%") : null,
-                nickName       : nickName ? ("%" + nickName + "%") : null,
-                name           : name ? ("%" + name + "%") : null,
-                userTypeEnumStr: userTypeEnumStr ? userTypeEnumStr : null,
-                pageSize       : pageSize,
-                offset         : pageSize * (pageNumber - 1),
-                option         : "list",
+                username          : username ? ("%" + username + "%") : null,
+                nickName          : nickName ? ("%" + nickName + "%") : null,
+                name              : name ? ("%" + name + "%") : null,
+                idCardNo          : idCardNo,
+                userTypeEnumStr   : userTypeEnumStr,
+                createTimeStartStr: createTimeStartStr ? (createTimeStartStr + " 00:00:00") : null,
+                createTimeEndStr  : createTimeEndStr ? (createTimeEndStr + " 23:59:59") : null,
+                industryCode      : industryCode,
+                occupationCode    : occupationCode,
+                educationEnumStr  : educationEnumStr,
+                pageSize          : pageSize,
+                offset            : pageSize * (pageNumber - 1),
+                now               : SysConstant.yyyyMMddHHmmssSdf.format(now),
+                lastYear          : SysConstant.yyyyMMddHHmmssSdf.format(lastYear),
+                lastMonth         : SysConstant.yyyyMMddHHmmssSdf.format(lastMonth),
+                lastWeek          : SysConstant.yyyyMMddHHmmssSdf.format(lastWeek),
+                option            : "list",
         ]
 
         def queryResult = userMapper.userList(queryParams)
@@ -270,27 +297,81 @@ class UserController {
         if (queryResult) {
             result.list = queryResult.collect { Map row ->
                 SexEnum sexEnum = row.sexEnum ? SexEnum.valueOf(row.sexEnum as String) : null
+                EducationEnum educationEnum = row.educationEnum ? EducationEnum.valueOf(row.educationEnum as String) : null
                 [
-                        userId       : row.userId,
-                        username     : row.username,
-                        nickName     : row.nickName,
-                        avatar       : row.avatar,
-                        sexEnum      : sexEnum ? [
+                        userId              : row.userId,
+                        username            : row.username,
+                        nickName            : row.nickName,
+                        name                : row.name,
+                        avatar              : row.avatar,
+                        idCardNo            : row.idCardNo,
+                        industry            : row.industry,
+                        occupation          : row.occupation,
+                        sexEnum             : sexEnum ? [
                                 key : sexEnum.toString(),
                                 desc: sexEnum.getDesc()
                         ] : null,
-                        createTime   : row.createTime ? SysConstant.yyyyMMddHHmmssSdf.format(row.createTime as Date) : null,
-                        lastLoginTime: row.lastLoginTime ? SysConstant.yyyyMMddHHmmssSdf.format(row.lastLoginTime as Date) : null
+                        educationEnum       : educationEnum ? [
+                                key : educationEnum.toString(),
+                                desc: educationEnum.getDesc()
+                        ] : null,
+                        countOnLineRangYear : row.countOnLineRangYear,
+                        countOnLineRangMonth: row.countOnLineRangMonth,
+                        countOnLineRangWeek : row.countOnLineRangWeek,
+                        countNewsVote       : "暂未开发",
+                        countNewsComment    : "暂未开发",
+                        countWatchVideo     : "暂未开发",
+                        createTime          : row.createTime ? SysConstant.yyyyMMddHHmmssSdf.format(row.createTime as Date) : null,
+                        lastLoginTime       : row.lastLoginTime ? SysConstant.yyyyMMddHHmmssSdf.format(row.lastLoginTime as Date) : null
                 ]
             }
-            result.pageSize = queryResult.size()
-            result.totalCount = countResult[0].totalCount
+            result.pageBean = [
+                    pageSize   : queryResult.size(),
+                    currentPage: pageNumber,
+                    totalCount : countResult[0].totalCount
+            ]
         } else {
             result.list = []
-            result.pageSize = 0
-            result.totalCount = 0
+            result.pageBean = [
+                    pageSize   : 0,
+                    currentPage: pageNumber,
+                    totalCount : 0
+            ]
         }
 
         return WebResult.generateTrueWebResult(result)
     }
+
+
+    /**
+     * 行业职业列表
+     * @param industryCode
+     * @return
+     */
+    @GetMapping("/industryAndOccupationList")
+    WebResult industryAndOccupationList(String industryCode) {
+        if (industryCode) {
+            List<Occupation> occupationList = occupationRepository.findByIndustryCode(industryCode)
+            return WebResult.generateTrueWebResult(occupationList)
+        } else {
+            List<Industry> industryList = industryRepository.findAll()
+            return WebResult.generateTrueWebResult(industryList)
+        }
+    }
+
+    /**
+     * 学历列表
+     * @return
+     */
+    @GetMapping("/educationEnumList")
+    WebResult educationEnumList() {
+        def list = EducationEnum.values().collect { EducationEnum e ->
+            [
+                    key : e.toString(),
+                    desc: e.getDesc()
+            ]
+        }
+        return WebResult.generateTrueWebResult(list)
+    }
+
 }

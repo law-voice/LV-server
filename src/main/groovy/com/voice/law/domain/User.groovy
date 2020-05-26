@@ -143,7 +143,7 @@ enum EducationEnum {
     BACHELOR(2, "本科"),
     MASTER(3, "硕士"),
     DOCTOR_AND_ABOVE(4, "博士及以上"),
-    OTHER(5, "其他"),
+//    OTHER(5, "其他"),
 
     private Integer code = null
     private String desc = null
